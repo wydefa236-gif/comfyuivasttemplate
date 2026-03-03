@@ -16,7 +16,7 @@ PIP_PACKAGES=(
 )
 
 NODES=(
-    #"https://github.com/ltdrdata/ComfyUI-Manager"
+    "https://github.com/ltdrdata/ComfyUI-Manager"
     #"https://github.com/cubiq/ComfyUI_essentials"
 )
 
@@ -46,17 +46,13 @@ CONTROLNET_MODELS=(
 ### DO NOT EDIT BELOW HERE UNLESS YOU KNOW WHAT YOU ARE DOING ###
 
 function provisioning_start() {
-    # 1. Link the system ComfyUI to workspace if it's missing
-    if [ ! -f "${COMFYUI_DIR}/main.py" ]; then
-        ln -s /opt/ComfyUI/* ${COMFYUI_DIR}/ 2>/dev/null || cp -r /opt/ComfyUI/* ${COMFYUI_DIR}/
-    fi
-
-    # 2. Inject the security configuration
-    mkdir -p ${COMFYUI_DIR}
-    printf "[user]\nsecurity_level = weak\n" > ${COMFYUI_DIR}/config.ini
     provisioning_print_header
     provisioning_get_apt_packages
     provisioning_get_nodes
+    
+    # --- ADDED: Set security level immediately after nodes download ---
+    provisioning_set_manager_security
+    
     provisioning_get_pip_packages
     provisioning_get_files \
         "${COMFYUI_DIR}/models/checkpoints" \
@@ -77,6 +73,25 @@ function provisioning_start() {
         "${COMFYUI_DIR}/models/esrgan" \
         "${ESRGAN_MODELS[@]}"
     provisioning_print_end
+}
+
+# --- ADDED: Function to force security_level to weak ---
+function provisioning_set_manager_security() {
+    printf "Setting ComfyUI-Manager security level to weak...\n"
+    
+    local config_content="[default]\nsecurity_level = weak"
+    
+    # We write to all 3 paths because ComfyUI-Manager changes this based on version
+    local config_dirs=(
+        "${COMFYUI_DIR}/user/__manager"                 # v0.3.76+
+        "${COMFYUI_DIR}/user/default/ComfyUI-Manager"   # v3.0 to v3.38
+        "${COMFYUI_DIR}/custom_nodes/ComfyUI-Manager"   # Legacy versions
+    )
+    
+    for conf_dir in "${config_dirs[@]}"; do
+        mkdir -p "$conf_dir"
+        echo -e "$config_content" > "${conf_dir}/config.ini"
+    done
 }
 
 function provisioning_get_apt_packages() {
