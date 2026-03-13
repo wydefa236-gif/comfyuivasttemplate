@@ -50,13 +50,13 @@ LORA_IDS=(
 
 export LORA_DIR="/ComfyUI/models/loras/"
 export TEXT_ENC_DIR="/ComfyUI/models/text_encoders/"
-
+export MODELS_DIR="/ComfyUI/models/diffusion_models/"
 
 #  Example Hugging Face
 
-download_model "https://huggingface.co/vita-video-gen/svi-model/resolve/main/version-2.0/SVI_Wan2.2-I2V-A14B_high_noise_lora_v2.0_pro.safetensors" "$LORA_DIR/SVI_Wan2.2-I2V-A14B_high_noise_lora_v2.0_pro.safetensors"
+#download_model "https://huggingface.co/vita-video-gen/svi-model/resolve/main/version-2.0/SVI_Wan2.2-I2V-A14B_high_noise_lora_v2.0_pro.safetensors" "$LORA_DIR/SVI_Wan2.2-I2V-A14B_high_noise_lora_v2.0_pro.safetensors"
 
-download_model "https://huggingface.co/vita-video-gen/svi-model/resolve/main/version-2.0/SVI_Wan2.2-I2V-A14B_low_noise_lora_v2.0_pro.safetensors" "$LORA_DIR/SVI_Wan2.2-I2V-A14B_low_noise_lora_v2.0_pro.safetensors"
+#download_model "https://huggingface.co/vita-video-gen/svi-model/resolve/main/version-2.0/SVI_Wan2.2-I2V-A14B_low_noise_lora_v2.0_pro.safetensors" "$LORA_DIR/SVI_Wan2.2-I2V-A14B_low_noise_lora_v2.0_pro.safetensors"
 
 #  Examples CivitAI (will prompt for your key)
 
@@ -73,6 +73,16 @@ for LORA_ID in "${LORA_IDS[@]}"; do
     ((download_count++))
 done
 
+MODEL_IDS=(
+    "2555640" "2555652"  # DaSiWa WAN 2.2 I2V 14B
+)
+
+for MODEL_ID in "${MODEL_IDS[@]}"; do
+    sleep 1
+    echo "🚀 Scheduling download: $MODEL_ID to /ComfyUI/models/diffusion_models/"
+    (cd "/ComfyUI/models/diffusion_models/" && download_with_aria.py -m "$MODEL_ID") &
+    ((download_count++))
+done
 
 #  NSFW Text encoder
 echo "Downloading NSFW text encoders..."
